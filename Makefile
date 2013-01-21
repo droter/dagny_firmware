@@ -1,6 +1,6 @@
 DEVICE=atmega2560
 #CFLAGS=-mmcu=$(DEVICE) -Wall -Werror -O -Iros_lib
-CFLAGS=-mmcu=$(DEVICE) -Wall -Werror -Iros_lib -O -DF_CPU=16000000UL
+CFLAGS=-mmcu=$(DEVICE) -Wall -Werror -Iros_lib -O -DF_CPU=16000000UL -Idagny_protocol
 LDFLAGS=-mmcu=$(DEVICE)
 ASFLAGS=-mmcu=$(DEVICE)
 CXXFLAGS=$(CFLAGS)
@@ -9,7 +9,7 @@ LDLIBS=-lm
 
 include Makefile.avr
 
-VPATH=drivers:ros_lib
+VPATH=drivers:dagny_protocol
 
 CSRC=motor.c i2c.c estop.c
 CXXSRC=gps.cpp interrupt.cpp main.cpp steer.cpp TinyGPS.cpp sonar.cpp imu.cpp protocol.cpp
@@ -43,27 +43,6 @@ program: $(TRG).hex
 .PHONY: size
 size: $(TRG).elf
 	avr-size $(TRG).elf
-
-#MAKE_LIBRARY=rosrun rosserial_client make_library.py
-
-#roslib:
-#	rm -r ros_lib || true
-#	cp -r $(shell rospack find rosserial_client)/src/ros_lib .
-#	rosrun rosserial_client make_library.py . std_msgs tf rosserial_msgs geometry_msgs nav_msgs
-#	rosrun rosserial_client make_library.py . gps_simple
-#	rosrun rosserial_client make_library.py . dagny_msgs
-#	ln -s ../ros.h ros_lib/ros.h
-
-#MAKE_LIBRARY=./make_library.py
-#
-#roslib2:
-#	rm -r ros_lib2 || true
-#	mkdir -p ros_lib2
-#	cp -r $(shell rospack find rosserial_client)/src/ros_lib/* ros_lib2/
-#	${MAKE_LIBRARY} . std_msgs tf rosserial_msgs geometry_msgs nav_msgs
-#	${MAKE_LIBRARY} . gps_simple
-#	${MAKE_LIBRARY} . dagny_msgs
-#	ln -s ../ros.h ros_lib2/ros.h
 
 .PHONY: clean
 clean:

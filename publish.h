@@ -9,7 +9,7 @@
 #ifndef PUBLISH_H
 #define PUBLISH_H
 
-#include "protocol.h"
+#include <protocol.h>
 extern "C" {
 #include "drivers/serial.h"
 #include "drivers/led.h"
