@@ -177,9 +177,9 @@ int main() {
    bump_init();
 
    // serial port 3: bluetooth
-//   serial_init(BT);
+   serial_init(BT);
    // set baud rate: 115.2k baud
-//   serial_baud(BT,115200);
+   serial_baud(BT,115200);
 
    // serial port 0: brain
    serial_init(BRAIN);
@@ -189,7 +189,7 @@ int main() {
    gps_init(GPS);
 
    // sonar initialization
-//   sonar_init(SONAR);
+   sonar_init(SONAR);
 
    sei(); // enable interrupts
 
@@ -203,8 +203,8 @@ int main() {
 
    while(1) {
       gps_spinOnce();
-//      sonar_spinOnce();
-//      bt_spinOnce();
+      sonar_spinOnce();
+      bt_spinOnce();
       sub_spinOnce();
 
       _delay_ms(1);
