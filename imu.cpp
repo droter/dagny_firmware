@@ -57,6 +57,8 @@ Vector3 gyro_offset;
 Twist imu_state;
 
 Publisher<64> imu_pub('U');
+Publisher<100> compass_pub('M'); // 16 x 3 x 2 = 96
+Publisher<200> raw_pub('V'); // 16 x 6 x 2 = 192
 
 void imu_init() {
    i2c_init();
@@ -276,6 +278,23 @@ void update_imu() {
       s(8.0);
    }
 
+   if( compass_pub.reset() ) {
+      compass_pub.append(compass_msg.x);
+      compass_pub.append(compass_msg.y);
+      compass_pub.append(compass_msg.z);
+      compass_pub.finish();
+   }
+
+   if( raw_pub.reset() ) {
+      raw_pub.append(gyro_msg.x);
+      raw_pub.append(gyro_msg.y);
+      raw_pub.append(gyro_msg.z);
+      raw_pub.append(accel_msg.x);
+      raw_pub.append(accel_msg.y);
+      raw_pub.append(accel_msg.z);
+      raw_pub.finish();
+   }
+
    return;
 }
 
@@ -370,16 +389,16 @@ void compass_done(uint8_t * buf) {
 
    // interpret and publish data
    int16_t compass = (buf[0] << 8) | buf[1];
-   compass_msg.x = ((-compass/1300.0) - compass_offset.x + compass_msg.x) / 2;
-   //compass_msg.x = (compass/1300.0);
+   //compass_msg.x = ((-compass/1300.0) - compass_offset.x + compass_msg.x) / 2;
+   compass_msg.x = (compass/1300.0);
 
    compass = (buf[2] << 8) | buf[3];
-   compass_msg.y = ((-compass/1300.0) - compass_offset.y + compass_msg.y) / 2;
-   //compass_msg.y = (compass/1300.0);
+   //compass_msg.y = ((-compass/1300.0) - compass_offset.y + compass_msg.y) / 2;
+   compass_msg.y = (compass/1300.0);
 
    compass = (buf[4] << 8) | buf[5];
-   compass_msg.z = ((-compass/1300.0) - compass_offset.z + compass_msg.z) / 2;
-   //compass_msg.z = (compass/1300.0);
+   //compass_msg.z = ((-compass/1300.0) - compass_offset.z + compass_msg.z) / 2;
+   compass_msg.z = (compass/1300.0);
 
    /*
    compass_min.x = max(compass_min.x, compass_msg.x);
@@ -387,8 +406,8 @@ void compass_done(uint8_t * buf) {
    compass_min.z = max(compass_min.z, compass_msg.z);
    */
 
-   update_imu();
-   //gyro_read();
+   //update_imu();
+   gyro_read();
    return;
 }
 
@@ -408,14 +427,17 @@ void accel_done(uint8_t * buf) {
    // accel -Y maps to robot X
    accel = -(buf[2] | (buf[3] << 8));
    accel_msg.x = ((accel / 256.0) + 3*accel_msg.x) / 4;
+   //accel_msg.x = (accel / 256.0);
 
    // accel X maps to robot Y
    accel = (buf[0] | (buf[1] << 8));
    accel_msg.y = ((accel / 256.0) + 3*accel_msg.y) / 4;
+   //accel_msg.y = (accel / 256.0);
 
    // accel -Z maps to robot Z
    accel = -(buf[4] | (buf[5] << 8));
    accel_msg.z = ((accel / 256.0) + 3*accel_msg.z) / 4;
+   //accel_msg.z = (accel / 256.0);
 
    compass_read();
    return;
