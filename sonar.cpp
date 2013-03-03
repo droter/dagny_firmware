@@ -79,7 +79,7 @@ void sonar_spinOnce(void) {
           if( input == '\r' ) {
             sonar_value[current_sonar] = sonar_tmp;
             // TODO: rewrite this to send sonar data as available
-            /*
+            
             // if this is the first sonar, reset
             if( current_sonar == 0 ) 
                sonar_pub.reset();
@@ -88,7 +88,6 @@ void sonar_spinOnce(void) {
             // if this is the last sonar, send
             if( current_sonar == (NUM_SONARS-1) )
                sonar_pub.finish();
-               */
           }
           break;
       }
