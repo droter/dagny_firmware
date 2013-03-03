@@ -130,6 +130,9 @@ void bt_vel(Packet & p) {
    }
 }
 
+uint16_t goal_sz = 0;
+char goal_buf[32]; // goal buffer
+
 // bluetooth spin loop
 void bt_spinOnce() {
    while(rx_ready(BT)) {
@@ -140,10 +143,26 @@ void bt_spinOnce() {
          bt_p.input(b);
          // if we got the end-of-packet flag
          if( '\r' == b ) {
-            // TODO: rewrite this to use packets
             switch(bt_type) {
                case 'C':
                   bt_vel(bt_p);
+                  break;
+               case 'L':
+                  // TODO: pass goal data to main CPU
+                  {
+                     char * g = goal_buf;
+                     const char * s = bt_p.outbuf();
+                     unsigned char sz = 0;
+                     while( sz < bt_p.outsz() && sz < 32 ) {
+                        *g++ = *s++;
+                        ++sz;
+                     }
+                     goal_buf[0] = bt_type;
+                     if( sz < 32 && goal_sz == 0 ) {
+                        goal_sz = sz;
+                        tx_buffer(BRAIN, (const uint8_t *)goal_buf, &goal_sz);
+                     }
+                  }
                   break;
                default:
                   break;
