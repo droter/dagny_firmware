@@ -2,7 +2,7 @@ Notes on the areduino pinouts; taken from the schematics
 Best viewed with a fixed-width font
 
 UART 0:
-RX: PE0
+RX: PE0 (PCINT8)
 TX: PE1
 
 UART 1:
@@ -14,8 +14,8 @@ RX: PH0
 TX: PH1
 
 UART 3:
-RX: PJ0
-TX: PJ1
+RX: PJ0 (PCINT9)
+TX: PJ1 (PCINT10)
 
 Analog In:
 A0:  PF0 (ADC0)
