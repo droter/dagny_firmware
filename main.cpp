@@ -23,6 +23,7 @@ extern "C" {
 #include "speedman.h"
 #include "drivers/bump.h"
 #include "drivers/led.h"
+#include "encoder.h"
 }
 
 #include "twist.h"
@@ -194,6 +195,8 @@ int main() {
    battery_init();
 
    bump_init();
+
+   encoder_init();
 
    // serial port 3: bluetooth
    serial_init(BT);

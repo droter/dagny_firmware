@@ -11,7 +11,7 @@ include Makefile.avr
 
 VPATH=drivers:dagny_protocol
 
-CSRC=motor.c i2c.c estop.c
+CSRC=motor.c i2c.c estop.c encoder.c
 CXXSRC=gps.cpp interrupt.cpp main.cpp steer.cpp TinyGPS.cpp sonar.cpp imu.cpp protocol.cpp
 DRIVERS=adc.o bump.o power.o pwm.o serial.o serial-interrupt.o servo.o
 
