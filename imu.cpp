@@ -90,10 +90,15 @@ void imu_init() {
    gyro_offset.y = 0;
    gyro_offset.z = 0;
 
+   /* new compass calibration */
+   compass_offset.x = -0.025;
+   compass_offset.y = 0.150;
+   compass_offset.z = 0.0;
+
    /* flat compass calibration */
-   compass_offset.x = -0.036923;
+   /* compass_offset.x = -0.036923;
    compass_offset.y = -0.107692;
-   compass_offset.z = 0.03775;
+   compass_offset.z = 0.03775; */
 
    /* 3D compass calibration
    // Not as good on flat ground
@@ -223,7 +228,8 @@ void update_imu() {
    //  start with weighted average
    //z = (1.0 * gyro_est.z + 1.0 * compass_est.z + 1.0 * odom_est.z) / 3.0;
    //z = (1.0 * gyro_est.z + 1.0 * odom_est.z) / 2.0;
-   z = (1.0 * compass_est.z + 1.0 * odom_est.z) / 2.0;
+   //z = (1.0 * compass_est.z + 1.0 * odom_est.z) / 2.0;
+   z = compass_est.z;
    // if our compass error is too big, update the error value
    /*
    if( fabs( (compass_est.z - z) / z) > 0.1 ) {
@@ -302,7 +308,6 @@ int16_t gyro_zero[3];
 // number of gyro samples to take at startup
 #define GYRO_COUNT 50
 uint8_t gyro_start = GYRO_COUNT;
-#define GYRO_DIV 20.0
 #define GYRO_THRESHOLD 5
 
 void gyro_done(uint8_t * buf) {
@@ -323,7 +328,6 @@ void gyro_done(uint8_t * buf) {
       }
       */
       gyro_msg.x = (gyro * 2000.0) / 0x7FFF;
-      gyro_msg.x /= GYRO_DIV;
       gyro_msg.x *= M_PI / 180.0;
    }
 
@@ -341,7 +345,6 @@ void gyro_done(uint8_t * buf) {
       }
       */
       gyro_msg.y = -(gyro * 2000.0) / 0x7FFF;
-      gyro_msg.y /= GYRO_DIV;
       gyro_msg.y *= M_PI / 180.0;
    }
 
@@ -359,7 +362,6 @@ void gyro_done(uint8_t * buf) {
       }
       */
       gyro_msg.z = (gyro * 2000.0) / 0x7FFF;
-      gyro_msg.z /= GYRO_DIV;
       gyro_msg.z *= M_PI / 180.0;
    }
 
@@ -390,15 +392,15 @@ void compass_done(uint8_t * buf) {
    // interpret and publish data
    int16_t compass = (buf[0] << 8) | buf[1];
    //compass_msg.x = ((-compass/1300.0) - compass_offset.x + compass_msg.x) / 2;
-   compass_msg.x = (compass/1300.0);
+   compass_msg.x = (compass/1300.0) - compass_offset.x;
 
    compass = (buf[2] << 8) | buf[3];
    //compass_msg.y = ((-compass/1300.0) - compass_offset.y + compass_msg.y) / 2;
-   compass_msg.y = (compass/1300.0);
+   compass_msg.y = (compass/1300.0) - compass_offset.y;
 
    compass = (buf[4] << 8) | buf[5];
    //compass_msg.z = ((-compass/1300.0) - compass_offset.z + compass_msg.z) / 2;
-   compass_msg.z = (compass/1300.0);
+   compass_msg.z = (compass/1300.0) - compass_offset.z;
 
    /*
    compass_min.x = max(compass_min.x, compass_msg.x);
@@ -426,18 +428,18 @@ void accel_done(uint8_t * buf) {
    int16_t accel;
    // accel -Y maps to robot X
    accel = -(buf[2] | (buf[3] << 8));
-   accel_msg.x = ((accel / 256.0) + 3*accel_msg.x) / 4;
-   //accel_msg.x = (accel / 256.0);
+   //accel_msg.x = ((accel / 256.0) + 3*accel_msg.x) / 4;
+   accel_msg.x = (accel / 256.0);
 
    // accel X maps to robot Y
    accel = (buf[0] | (buf[1] << 8));
-   accel_msg.y = ((accel / 256.0) + 3*accel_msg.y) / 4;
-   //accel_msg.y = (accel / 256.0);
+   //accel_msg.y = ((accel / 256.0) + 3*accel_msg.y) / 4;
+   accel_msg.y = (accel / 256.0);
 
    // accel -Z maps to robot Z
    accel = -(buf[4] | (buf[5] << 8));
-   accel_msg.z = ((accel / 256.0) + 3*accel_msg.z) / 4;
-   //accel_msg.z = (accel / 256.0);
+   //accel_msg.z = ((accel / 256.0) + 3*accel_msg.z) / 4;
+   accel_msg.z = (accel / 256.0);
 
    compass_read();
    return;
