@@ -46,7 +46,7 @@ int16_t e = 0; // error
 volatile uint16_t odom_sz = 0;
 volatile int8_t steer;
 // (5 floats + overhead)*2 = 64
-Publisher<64> odom('O');
+Publisher<96> odom('O');
 
 // 0.03 meters per tick
 //  TODO: update for increased encoder resolution
@@ -84,7 +84,7 @@ ISR(TIMER0_OVF_vect) {
    // speed management; run at 10Hz
    const static int16_t Kp = DIV/16; // proportional constant
    if( ticks % 100 == 0 ) {
-      qspeed = 5 * ((qcount - old_qcount)/2);
+      qspeed = (qcount - old_qcount);
       // E-stop
       if( estop() ) {
          estop_cnt = 30;
@@ -133,7 +133,8 @@ ISR(TIMER0_OVF_vect) {
       double r = steer2radius(steer);
 
       //float speed = qspeed * (Q_SCALE * 0.5);
-      float speed = qspeed * 0.032 * 0.5;
+      // qspeed in ticks/sec
+      float speed = qspeed * Q_SCALE * 10.0;
 
       // if we've moved, update position
       if( old_qcount != qcount ) {
@@ -184,6 +185,8 @@ ISR(TIMER0_OVF_vect) {
          yaw = imu_state.angular.z;
          odom.append(yaw);
          odom.append(bump());
+         odom.append(qcount);
+         odom.append(steer);
          // odom: total of 5 floats; 4*5 = 20 bytes
          odom.finish();
       }
