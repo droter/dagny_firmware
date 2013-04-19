@@ -8,5 +8,6 @@ void estop_init() {
 }
 
 int8_t estop() {
-   return PINB & (1 << PB0);
+   return 0;
+   //return PINB & (1 << PB0);
 }
