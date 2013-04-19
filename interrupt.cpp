@@ -67,10 +67,10 @@ void interrupt_init(void) {
    // fast PWM mode; interrupt and reset when counter equals OCR0A
    // prescalar 64
    TCCR0A = (1 << WGM01 | 1 << WGM00);
-   TCCR0B = (1 << WGM02 | 1 << CS01 | 1 << CS00);
+   TCCR0B = (1 << WGM02 | 1 << CS02);
    // interrupt on "overflow" (counter match)
    TIMSK0 = (1 << TOIE0);
-   OCR0A  = 249; // 250 counts per tick
+   OCR0A  = (125) - 1; // 500 Hz
 }
 
 /* interrupt routine */
@@ -83,7 +83,10 @@ ISR(TIMER0_OVF_vect) {
 
    // speed management; run at 10Hz
    const static int16_t Kp = DIV/16; // proportional constant
-   if( ticks % 100 == 0 ) {
+   //if( ticks % 100 == 0 ) {
+   // 10Hz = 500Hz / 50
+   if( ticks % 50 == 0 ) {
+      ticks = 0;
       qspeed = (qcount - old_qcount);
       // E-stop
       if( estop() ) {
@@ -123,16 +126,10 @@ ISR(TIMER0_OVF_vect) {
 
       // output
       motor_speed(power/DIV);
-      /*
-   }
 
-   // wheel encoder and speed transmit; 20Hz
-   // wheel encoder and speed transmit; 10Hz
-   if( ticks % 100 == 0 ) {
-   */
+      // odometry
       double r = steer2radius(steer);
 
-      //float speed = qspeed * (Q_SCALE * 0.5);
       // qspeed in ticks/sec
       float speed = qspeed * Q_SCALE * 10.0;
 
@@ -194,8 +191,9 @@ ISR(TIMER0_OVF_vect) {
 
    // IMU and GPS loop; run at 20Hz.
    // run at a time when the odometry calculations aren't running
-   if( ticks % 50 == 24 ) {
-   //if( ticks % 20 == 0 ) {
+   //if( ticks % 50 == 24 ) {
+   // 20 Hz = 500Hz / 25.0
+   if( ticks % 25 == 12 ) {
       imu_read(); // read the IMU
    }
 }
