@@ -37,13 +37,15 @@ extern "C" {
 #define CLK 16000
 
 // was 119
-#define STEER_OFFSET 115
+#define STEER_OFFSET 119
 
 extern uint8_t i2c_state; // DEBUG
 extern uint8_t i2c_twsr; // DEBUG
 
 extern volatile int8_t steer;
 extern volatile uint32_t ticks;
+
+extern Vector3 compass_offset;
 
 volatile uint16_t shutdown_count;
 
@@ -101,6 +103,12 @@ void sub_spinOnce() {
                case 'H':
                   // heartbeat
                   last_heartbeat = ticks;
+                  break;
+               case 'O':
+                  // compass offsets
+                  compass_offset.x = sub_p.readfloat();
+                  compass_offset.y = sub_p.readfloat();
+                  compass_offset.z = sub_p.readfloat();
                   break;
                default:
                   break;
@@ -231,8 +239,8 @@ int main() {
 
       _delay_ms(1);
       idle++;
-      if( ticks - idle_last > 1000 ) {
-         idle_last = (ticks/1000) * 1000;
+      if( ticks - idle_last > 500 ) {
+         idle_last = (ticks/500) * 500;
          if( idle_pub.reset() ) {
             idle_pub.append(idle);
             extern uint8_t i2c_fail;
