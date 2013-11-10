@@ -91,9 +91,16 @@ void imu_init() {
    gyro_offset.z = 0;
 
    /* new compass calibration */
-   compass_offset.x = -0.025;
-   compass_offset.y = 0.150;
+   // battery #1
+   compass_offset.x = -0.250;
+   compass_offset.y = -0.080;
    compass_offset.z = 0.0;
+   // battery #2
+   /*
+   compass_offset.x = -0.100;
+   compass_offset.y = -0.130;
+   compass_offset.z = 0.0;
+   */
 
    /* flat compass calibration */
    /* compass_offset.x = -0.036923;
@@ -169,7 +176,7 @@ void update_imu() {
    Vector3 compass_est; // RPY angles
    Vector3 accel_est;   // RPY estimate from accelerometer
 
-   Vector3 odom_est;    // XYZ estimate from odometry
+   //Vector3 odom_est;    // XYZ estimate from odometry
 
    // RPY estimation from gyro
    // TODO: make sure scaling on gyro is accurate
@@ -215,7 +222,7 @@ void update_imu() {
 
    // RPY estimate from odomery
    // TODO: do this properly
-   odom_est.z = imu_state.angular.z;
+   //odom_est.z = imu_state.angular.z;
 
    // combine sensor data
    //  this is entirely heuristic and based on intuition
@@ -257,7 +264,6 @@ void update_imu() {
    imu_state.angular.y = y;
    imu_state.angular.z = z;
 
-   //imu_pub.publish(&imu_state);
    if( imu_pub.reset() ) {
       //x = imu_state.angular.x * 180.0 / M_PI;
       x = imu_state.angular.x;
@@ -291,6 +297,7 @@ void update_imu() {
       compass_pub.finish();
    }
 
+   /*
    if( raw_pub.reset() ) {
       raw_pub.append(gyro_msg.x);
       raw_pub.append(gyro_msg.y);
@@ -300,6 +307,7 @@ void update_imu() {
       raw_pub.append(accel_msg.z);
       raw_pub.finish();
    }
+   */
 
    return;
 }
@@ -392,15 +400,15 @@ void compass_done(uint8_t * buf) {
    // interpret and publish data
    int16_t compass = (buf[0] << 8) | buf[1];
    //compass_msg.x = ((-compass/1300.0) - compass_offset.x + compass_msg.x) / 2;
-   compass_msg.x = (compass/1300.0) - compass_offset.x;
+   compass_msg.x = (-compass/1300.0) - compass_offset.x;
 
    compass = (buf[2] << 8) | buf[3];
    //compass_msg.y = ((-compass/1300.0) - compass_offset.y + compass_msg.y) / 2;
-   compass_msg.y = (compass/1300.0) - compass_offset.y;
+   compass_msg.y = (-compass/1300.0) - compass_offset.y;
 
    compass = (buf[4] << 8) | buf[5];
    //compass_msg.z = ((-compass/1300.0) - compass_offset.z + compass_msg.z) / 2;
-   compass_msg.z = (compass/1300.0) - compass_offset.z;
+   compass_msg.z = (-compass/1300.0) - compass_offset.z;
 
    /*
    compass_min.x = max(compass_min.x, compass_msg.x);
@@ -408,8 +416,8 @@ void compass_done(uint8_t * buf) {
    compass_min.z = max(compass_min.z, compass_msg.z);
    */
 
-   //update_imu();
-   gyro_read();
+   update_imu();
+   //gyro_read();
    return;
 }
 
@@ -462,7 +470,8 @@ void accel_read() {
 void imu_read() {
    if( imu_enable ) {
       s(0.0);
-      accel_read();
+      //accel_read();
+      compass_read();
    } 
    if( i2c_fail > 5 ) {
       ++i2c_resets;
