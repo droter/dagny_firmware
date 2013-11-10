@@ -49,11 +49,6 @@ uint16_t tx_pos[4] = {0, 0, 0, 0};
 
 /* transmit an entire buffer */
 void tx_buffer(uint8_t port, const uint8_t * buf, uint16_t * bufsz) {
-   /*
-   uint8_t lock_fail = 0;
-wait:
-   while(tx_size[port] >= PTR_SZ);
-   */
    if(tx_size[port] >= PTR_SZ) {
       *bufsz = 0;
       return;
@@ -63,16 +58,10 @@ wait:
    cli(); /* lock everything before we modify the send queue */
 
    /*
-   if( tx_size[port] >= PTR_SZ ) {
-     //led_on(); // failed to lock TX queue
-     lock_fail = 1;
-     // if we didn't get a good lock, unlock and go back to waiting
-     sei(); // we MUST enable interrupts here so that the tx interrupt can
-            // empty the transmit queue 
-     goto wait;
-   }
-   if( lock_fail ) {
-      //led_off(); // successful lock on tx queue
+   if(tx_size[port] >= PTR_SZ) {
+      *bufsz = 0;
+      sei();
+      return;
    }
    */
 
@@ -85,25 +74,6 @@ wait:
    ucsr[port][B] |= (1 << 5); /* enable and trigger send interrupt */
    sei(); /* unlock */
 }
-
-/* priority tx: push to front of tx queue
- */
-//void priority_tx(uint8_t port, uint8_t * buf, uint16_t bufsz) {
-//   while(tx_size[port] >= PTR_SZ); // TODO: consider dropping this check
-//
-//   ucsr[port][B] &= ~(1 << 5); /* diable send interrupt (locking) */
-//
-//   uint8_t p = (tx_head[port] - tx_size[port] - 1) % PTR_SZ;
-//   // TODO: push onto other end of circular fifo
-//   tx_ptrs[port][p] = buf;
-//   tx_szs[port][p] = bufsz;
-//   tx_pos[port] = 0;
-//   //tx_head[port]++;
-//   //tx_head[port] %= PTR_SZ;
-//   tx_size[port]++;
-//
-//   ucsr[port][B] |= (1 << 5); /* enable send interrupt */
-//}
 
 volatile uint8_t * rxtx[] = {&DDRE, &DDRD, &DDRH, &DDRJ};
 uint8_t rxbit[] = {0, 2, 0, 0};
