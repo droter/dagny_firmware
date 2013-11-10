@@ -33,13 +33,14 @@ float x, y, yaw; /* position */
 int16_t old_qcount; /* for updating odometry output */
 
 #define DIV 256
+#define MULT_START (DIV*4)
 
 // speed management variables
 volatile int16_t power = 0; 
 volatile int16_t target_speed;
 
 int16_t speed = 0;
-int16_t mult = DIV/2;
+int16_t mult = MULT_START;
 int16_t e = 0; // error
 
 // odometry transmission variables
@@ -86,7 +87,6 @@ ISR(TIMER0_OVF_vect) {
    //if( ticks % 100 == 0 ) {
    // 10Hz = 500Hz / 50
    if( ticks % 50 == 0 ) {
-      ticks = 0;
       qspeed = (qcount - old_qcount);
       // E-stop
       if( estop() ) {
@@ -94,10 +94,11 @@ ISR(TIMER0_OVF_vect) {
       }
 
       if( estop_cnt == 0 ) {
-         led_on();
+         //led_on();
          // reflex: stop if we bump into something
          if( target_speed > 0 && bump() ) {
             power = 0;
+            mult = MULT_START;
          } else {
             speed = qspeed;
 
@@ -109,7 +110,7 @@ ISR(TIMER0_OVF_vect) {
                if( e < -DIV ) e = -DIV;
                mult += e;
             } else {
-               mult = DIV/2;
+               mult = MULT_START;
             }
 
             if( mult < 1 ) mult = 1;
@@ -120,7 +121,7 @@ ISR(TIMER0_OVF_vect) {
          }
       } else {
          --estop_cnt;
-         led_off();
+         //led_off();
          power = 0;
       }
 
@@ -177,9 +178,9 @@ ISR(TIMER0_OVF_vect) {
          odom.append(x);
          odom.append(y);
 
-         extern Twist imu_state;
+         //extern Twist imu_state;
          //yaw = (yaw + imu_state.angular.z) / 2.0;
-         yaw = imu_state.angular.z;
+         //yaw = imu_state.angular.z;
          odom.append(yaw);
          odom.append(bump());
          odom.append(qcount);
@@ -195,5 +196,9 @@ ISR(TIMER0_OVF_vect) {
    // 20 Hz = 500Hz / 25.0
    if( ticks % 25 == 12 ) {
       imu_read(); // read the IMU
+   }
+
+   if( ticks == 5000 ) {
+      ticks = 0;
    }
 }
