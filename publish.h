@@ -33,7 +33,6 @@ class Publisher {
 
       int8_t reset() {
          if( sz > 0 ) {
-            led_on();
             return 0;
          } else {
             p.reset();
