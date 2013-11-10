@@ -12,7 +12,7 @@
 
 #define BUF_SZ 200
 
-#define PTR_SZ 8
+#define PTR_SZ 16
 
 #define BRAIN 0
 #define BT 3
