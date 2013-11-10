@@ -103,7 +103,6 @@ void (*i2c_next)(void) = i2c_none;
 
 // the magic ISR that makes all of this go round
 ISR(TWI_vect) {
-   //led_on();
    // disable TWI interrupt and enable general interrupts.
    //TWCR &= ~((1 << TWINT) | (1 << TWIE));
    //sei();
@@ -134,14 +133,12 @@ ISR(TWI_vect) {
    } else if( i2cf_register == i2c_next) {
       i2cf_register();
    } else {
-      led_on();
+      //led_on();
    }
 
 
    // re-enable TWI interrupts
    //TWCR = (TWCR | (1 << TWIE)) & ~(1 << TWINT);
-   //if( ! i2c_errflag ) led_off();
-   //led_off();
    /*
    if( TWCR & (1 << TWINT) ) {
       TWCR = TWCR; // reset interrupt flag if set
@@ -349,7 +346,6 @@ void i2c_write(uint8_t addr, uint8_t reg, uint8_t data) {
    i2c_data = &i2c_data_pos;
    i2c_data_sz = 1;
 
-   //led_off();
    i2c_errflag = 0;
    i2c_ready = 0;
 
@@ -372,7 +368,6 @@ void i2c_writem( uint8_t addr, uint8_t reg, uint8_t * data, uint8_t size,
    i2c_data_sz = size;
    i2c_w_callback = cb;
 
-   //led_off();
    i2c_errflag = 0;
    i2c_ready = 0;
 
@@ -395,7 +390,7 @@ int8_t i2c_read(uint8_t addr, uint8_t reg, uint8_t * buf, uint8_t size,
       led_on();
       return -1;
    }
-   led_off();
+   //led_off();
    while(TWCR & (1<<TWSTO) ); // wait for stop bit to become clear
    i2c_mode = READ;
    i2c_address = addr;
@@ -405,7 +400,6 @@ int8_t i2c_read(uint8_t addr, uint8_t reg, uint8_t * buf, uint8_t size,
    i2c_data_pos = 0;
    i2c_r_callback = cb;
 
-   //led_off();
    i2c_errflag = 0;
    i2c_ready = 0;
 
