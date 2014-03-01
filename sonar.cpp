@@ -16,7 +16,7 @@ extern "C" {
 #define SONAR_TIMEOUT 200
 #define SONAR_DELAY 20
 
-#define NUM_SONARS 5
+#define NUM_SONARS 4
 uint8_t sonar_port;
 uint8_t sonar_value[NUM_SONARS];
 
@@ -80,7 +80,13 @@ void sonar_spinOnce(void) {
             sonar_value[current_sonar] = sonar_tmp;
             // TODO: rewrite this to send sonar data as available
             
+            if( sonar_pub.reset() ) {
+              sonar_pub.append(current_sonar);
+              sonar_pub.append(sonar_tmp);
+              sonar_pub.finish();
+            }
             // if this is the first sonar, reset
+            /*
             if( current_sonar == 0 ) 
                sonar_pub.reset();
 
@@ -88,6 +94,7 @@ void sonar_spinOnce(void) {
             // if this is the last sonar, send
             if( current_sonar == (NUM_SONARS-1) )
                sonar_pub.finish();
+               */
           }
           break;
       }
