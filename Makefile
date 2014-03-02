@@ -12,7 +12,7 @@ include Makefile.avr
 VPATH=drivers:dagny_protocol
 
 CSRC=motor.c i2c.c estop.c encoder.c
-CXXSRC=gps.cpp interrupt.cpp main.cpp steer.cpp TinyGPS.cpp sonar.cpp imu.cpp protocol.cpp
+CXXSRC=gps.cpp interrupt.cpp main.cpp steer.cpp TinyGPS.cpp sonar.cpp imu.cpp protocol.cpp battery.cpp
 DRIVERS=adc.o bump.o power.o pwm.o serial.o serial-interrupt.o servo.o
 
 OBJS=$(CSRC:.c=.o) $(CXXSRC:.cpp=.o)
@@ -34,11 +34,11 @@ drivers/libdrivers.a:
 	$(MAKE) -C drivers
 
 program: $(TRG).hex
-	avrdude -pm2560 -P${COM} -cstk500v2 -u -U flash:w:$(TRG).hex
-	touch program
+	avrdude -pm2560 -cusbtiny -u -U flash:w:$(TRG).hex
+#	avrdude -pm2560 -P${COM} -cstk500v2 -u -U flash:w:$(TRG).hex
 #	avrdude -pm2560 -P${COM} -b115200 -cstk500v2 -u -U flash:w:$(TRG).hex
-#	avrdude -pm2560 -cusbtiny -u -U flash:w:$(TRG).hex
 #  no need to specify baud rate with new Arduio UNO/Mega 2560 programmer
+	touch program
 
 .PHONY: size
 size: $(TRG).elf

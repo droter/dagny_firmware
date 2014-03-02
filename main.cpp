@@ -33,6 +33,7 @@ extern "C" {
 #include "steer.h"
 #include "imu.h"
 #include "publish.h"
+#include "battery.h"
 
 #define CLK 16000
 
@@ -236,6 +237,7 @@ int main() {
       sonar_spinOnce();
       bt_spinOnce();
       sub_spinOnce();
+      battery_spinOnce();
 
       _delay_ms(1);
       idle++;
