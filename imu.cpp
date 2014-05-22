@@ -51,6 +51,7 @@ Vector3 compass_offset;
 //Vector3 compass_min;
 float compass_err;
 Vector3 gyro_offset;
+Vector3 accel_offset;
 
 // IMU State
 //  angles in Yaw Pitch Roll (ZYX) order
@@ -60,7 +61,7 @@ Publisher<64> imu_pub('U');
 Publisher<100> compass_pub('M'); // 16 x 3 x 2 = 96
 Publisher<200> raw_pub('V'); // 16 x 6 x 2 = 192
 
-void imu_init() {
+void imu_i2c_init() {
    i2c_init();
    // set up accelerometer
    i2c_write(I2C_ACCEL, 0x2A, 0x00); // disable tap detection
@@ -79,6 +80,10 @@ void imu_init() {
    i2c_write(I2C_GYRO, 0x16, 0x1C); // 20Hz low-pass filter
    i2c_write(I2C_GYRO, 0x3E, 0x01); // X gyro as clock reference
 
+   imu_enable = 1;
+}
+
+void imu_init() {
    imu_state.linear.x = 0;
    imu_state.linear.y = 0;
    imu_state.linear.z = 0;
@@ -89,6 +94,10 @@ void imu_init() {
    gyro_offset.x = 0;
    gyro_offset.y = 0;
    gyro_offset.z = 0;
+
+   accel_offset.x = 0;
+   accel_offset.y = 0;
+   accel_offset.z = 0;
 
    /* new compass calibration */
    // battery #1
@@ -116,7 +125,7 @@ void imu_init() {
 
    compass_err = 0;
 
-   imu_enable = 1;
+   imu_i2c_init();
    return;
 }
 
@@ -297,7 +306,6 @@ void update_imu() {
       compass_pub.finish();
    }
 
-   /*
    if( raw_pub.reset() ) {
       raw_pub.append(gyro_msg.x);
       raw_pub.append(gyro_msg.y);
@@ -307,12 +315,10 @@ void update_imu() {
       raw_pub.append(accel_msg.z);
       raw_pub.finish();
    }
-   */
 
    return;
 }
 
-int16_t gyro_zero[3];
 // number of gyro samples to take at startup
 #define GYRO_COUNT 50
 uint8_t gyro_start = GYRO_COUNT;
@@ -324,63 +330,21 @@ void gyro_done(uint8_t * buf) {
    int16_t gyro;
    // gyro Y is aligned with robot X
    gyro = (buf[2] << 8) | buf[3];
-   if( gyro_start > 0 ) {
-      gyro_zero[X] += gyro;
-      gyro_msg.x = 0.0;
-   } else {
-      gyro -= gyro_zero[X];
-      /*
-      if( abs(gyro) < GYRO_THRESHOLD ) {
-         gyro_zero[X] += gyro / 2;
-         gyro = 0;
-      }
-      */
-      gyro_msg.x = (gyro * 2000.0) / 0x7FFF;
-      gyro_msg.x *= M_PI / 180.0;
-   }
+   gyro_msg.x = (gyro * 2000.0) / 0x7FFF;
+   gyro_msg.x *= M_PI / 180.0;
+   gyro_msg.x -= gyro_offset.x;
 
    // gyro X is aligned with robot -Y
    gyro = (buf[0] << 8) | buf[1];
-   if( gyro_start > 0 ) {
-      gyro_zero[Y] += gyro;
-      gyro_msg.y = 0.0;
-   } else {
-      gyro -= gyro_zero[Y];
-      /*
-      if( abs(gyro) < GYRO_THRESHOLD ) {
-         gyro_zero[Y] += gyro / 2;
-         gyro = 0;
-      }
-      */
-      gyro_msg.y = -(gyro * 2000.0) / 0x7FFF;
-      gyro_msg.y *= M_PI / 180.0;
-   }
+   gyro_msg.y = -(gyro * 2000.0) / 0x7FFF;
+   gyro_msg.y *= M_PI / 180.0;
+   gyro_msg.y -= gyro_offset.y;
 
    // gyro Z is aligned with robot Z
    gyro = (buf[4] << 8) | buf[5];
-   if( gyro_start > 0 ) {
-      gyro_zero[Z] += gyro;
-      gyro_msg.z = 0.0;
-   } else {
-      gyro -= gyro_zero[Z];
-      /*
-      if( abs(gyro) < GYRO_THRESHOLD ) {
-         gyro_zero[Z] += gyro / 2;
-         gyro = 0;
-      }
-      */
-      gyro_msg.z = (gyro * 2000.0) / 0x7FFF;
-      gyro_msg.z *= M_PI / 180.0;
-   }
-
-   if( gyro_start > 0 ) {
-      --gyro_start;
-      if( gyro_start == 0 ) {
-         gyro_zero[X] /= GYRO_COUNT;
-         gyro_zero[Y] /= GYRO_COUNT;
-         gyro_zero[Z] /= GYRO_COUNT;
-      }
-   }
+   gyro_msg.z = (gyro * 2000.0) / 0x7FFF;
+   gyro_msg.z *= M_PI / 180.0;
+   gyro_msg.z -= gyro_offset.z;
 
    update_imu();
    return;
@@ -399,25 +363,15 @@ void compass_done(uint8_t * buf) {
 
    // interpret and publish data
    int16_t compass = (buf[0] << 8) | buf[1];
-   //compass_msg.x = ((-compass/1300.0) - compass_offset.x + compass_msg.x) / 2;
    compass_msg.x = (-compass/1300.0) - compass_offset.x;
 
    compass = (buf[2] << 8) | buf[3];
-   //compass_msg.y = ((-compass/1300.0) - compass_offset.y + compass_msg.y) / 2;
    compass_msg.y = (-compass/1300.0) - compass_offset.y;
 
    compass = (buf[4] << 8) | buf[5];
-   //compass_msg.z = ((-compass/1300.0) - compass_offset.z + compass_msg.z) / 2;
    compass_msg.z = (-compass/1300.0) - compass_offset.z;
 
-   /*
-   compass_min.x = max(compass_min.x, compass_msg.x);
-   compass_min.y = max(compass_min.y, compass_msg.y);
-   compass_min.z = max(compass_min.z, compass_msg.z);
-   */
-
-   update_imu();
-   //gyro_read();
+   gyro_read();
    return;
 }
 
@@ -436,18 +390,15 @@ void accel_done(uint8_t * buf) {
    int16_t accel;
    // accel -Y maps to robot X
    accel = -(buf[2] | (buf[3] << 8));
-   //accel_msg.x = ((accel / 256.0) + 3*accel_msg.x) / 4;
-   accel_msg.x = (accel / 256.0);
+   accel_msg.x = (accel / 25.60) - accel_offset.x;
 
    // accel X maps to robot Y
    accel = (buf[0] | (buf[1] << 8));
-   //accel_msg.y = ((accel / 256.0) + 3*accel_msg.y) / 4;
-   accel_msg.y = (accel / 256.0);
+   accel_msg.y = (accel / 25.60) - accel_offset.y;
 
    // accel -Z maps to robot Z
    accel = -(buf[4] | (buf[5] << 8));
-   //accel_msg.z = ((accel / 256.0) + 3*accel_msg.z) / 4;
-   accel_msg.z = (accel / 256.0);
+   accel_msg.z = (accel / 25.60) - accel_offset.z;
 
    compass_read();
    return;
@@ -470,13 +421,13 @@ void accel_read() {
 void imu_read() {
    if( imu_enable ) {
       s(0.0);
-      //accel_read();
-      compass_read();
+      accel_read();
+      //compass_read();
    } 
    if( i2c_fail > 5 ) {
       ++i2c_resets;
       imu_enable = 0;
-      imu_init();
+      imu_i2c_init();
       i2c_fail = 0;
    }
    return;

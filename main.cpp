@@ -47,6 +47,8 @@ extern volatile int8_t steer;
 extern volatile uint32_t ticks;
 
 extern Vector3 compass_offset;
+extern Vector3 gyro_offset;
+extern Vector3 accel_offset;
 
 volatile uint16_t shutdown_count;
 
@@ -110,6 +112,15 @@ void sub_spinOnce() {
                   compass_offset.x = sub_p.readfloat();
                   compass_offset.y = sub_p.readfloat();
                   compass_offset.z = sub_p.readfloat();
+                  break;
+               case 'I':
+                  // IMU offsets
+                  gyro_offset.x  += sub_p.readfloat();
+                  gyro_offset.y  += sub_p.readfloat();
+                  gyro_offset.z  += sub_p.readfloat();
+                  accel_offset.x += sub_p.readfloat();
+                  accel_offset.y += sub_p.readfloat();
+                  accel_offset.z += sub_p.readfloat();
                   break;
                default:
                   break;
@@ -249,6 +260,7 @@ int main() {
             idle_pub.append(i2c_fail);
             extern uint8_t i2c_resets;
             idle_pub.append(i2c_resets);
+            idle_pub.append(i2c_state);
             idle_pub.finish();
          }
          idle = 0;
