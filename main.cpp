@@ -38,7 +38,8 @@ extern "C" {
 #define CLK 16000
 
 // was 119
-#define STEER_OFFSET 119
+int8_t steer_center = 119;
+int8_t steer_offset = 0;
 
 extern uint8_t i2c_state; // DEBUG
 extern uint8_t i2c_twsr; // DEBUG
@@ -82,7 +83,7 @@ void vel_cb(Packet & p) {
       target_speed = p.reads16();
 
       steer = p.reads8();
-      servo_set(0, steer + STEER_OFFSET);
+      servo_set(0, steer + steer_offset + steer_center);
    }
 }
 
@@ -122,6 +123,9 @@ void sub_spinOnce() {
                   accel_offset.y += sub_p.readfloat();
                   accel_offset.z += sub_p.readfloat();
                   break;
+               case 'S':
+                  steer_offset = sub_p.reads8();
+                  break;
                default:
                   break;
             }
@@ -143,11 +147,11 @@ void bt_vel(Packet & p) {
    if( REMOTE == control_mode ) {
       target_speed = p.reads8();
       steer = p.reads8();
-      servo_set(0, steer + STEER_OFFSET);
+      servo_set(0, steer + steer_offset + steer_center);
    } else if( STOP == control_mode ) {
       target_speed = 0;
       steer = 0;
-      servo_set(0, steer + STEER_OFFSET);
+      servo_set(0, steer + steer_offset + steer_center);
    }
 }
 
