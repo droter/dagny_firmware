@@ -72,6 +72,9 @@ class TinyGPS
     // speed in last full GPRMC sentence in 100ths of a knot
     unsigned long speed() { return _speed; }
 
+    // hdop in hundredths
+    unsigned long hdop() { return _hdop; }
+
 #ifndef _GPS_NO_STATS
     void stats(unsigned long *chars, unsigned short *good_sentences, unsigned short *failed_cs);
 #endif
@@ -126,6 +129,9 @@ private:
     long _altitude, _new_altitude;
     unsigned long  _speed, _new_speed;
     unsigned long  _course, _new_course;
+
+    // DOP/HDOP
+    unsigned long _hdop, _new_hdop;
 
     unsigned long _last_time_fix, _new_time_fix;
     unsigned long _last_position_fix, _new_position_fix;

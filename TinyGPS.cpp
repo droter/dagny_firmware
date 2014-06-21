@@ -187,6 +187,7 @@ bool TinyGPS::term_complete()
           _time      = _new_time;
           _latitude  = _new_latitude;
           _longitude = _new_longitude;
+          _hdop      = _new_hdop;
           break;
         }
 
@@ -254,6 +255,11 @@ bool TinyGPS::term_complete()
       break;
     case 206: // Fix data (GPGGA)
       _gps_data_good = _term[0] > '0';
+      break;
+    case 207: // Number of satellites
+      break;
+    case 208: // HDOP
+      _new_hdop = parse_decimal();
       break;
     case 209: // Altitude (GPGGA)
       _new_altitude = parse_decimal();
