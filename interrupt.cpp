@@ -162,7 +162,7 @@ ISR(TIMER0_OVF_vect) {
 
          x += dx;
          y += dy;
-         yaw -= dt; // TODO: figure out why this sign is flipped
+         //yaw -= dt; // TODO: figure out why this sign is flipped
 
          old_qcount = qcount;
       }
@@ -178,9 +178,9 @@ ISR(TIMER0_OVF_vect) {
          odom.append(x);
          odom.append(y);
 
-         //extern Twist imu_state;
+         extern Twist imu_state;
          //yaw = (yaw + imu_state.angular.z) / 2.0;
-         //yaw = imu_state.angular.z;
+         yaw = imu_state.angular.z;
          odom.append(yaw);
          odom.append(bump());
          odom.append(qcount);
