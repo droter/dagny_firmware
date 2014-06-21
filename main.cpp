@@ -110,9 +110,9 @@ void sub_spinOnce() {
                   break;
                case 'O':
                   // compass offsets
-                  compass_offset.x = sub_p.readfloat();
-                  compass_offset.y = sub_p.readfloat();
-                  compass_offset.z = sub_p.readfloat();
+                  compass_offset.x += sub_p.readfloat();
+                  compass_offset.y += sub_p.readfloat();
+                  compass_offset.z += sub_p.readfloat();
                   break;
                case 'I':
                   // IMU offsets
