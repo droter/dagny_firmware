@@ -23,10 +23,10 @@ void pwr_off();
 /* initialize ADCs for reading battries */
 void battery_init();
 
-/* read charge of electronics battery. roughly 0-100 */
+/* read voltage of electronics battery. Volts*10 */
 uint8_t main_battery();
 
-/* read charge of motor battery. roughly 0-100 */
+/* read voltage of motor battery. Volts*10 */
 uint8_t motor_battery();
 
 #endif

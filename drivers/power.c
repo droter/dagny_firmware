@@ -40,39 +40,54 @@ void battery_init() {
    adc_init();
 }
 
-/* read charge of electronics battery. roughly 0-100 */
+/* read voltage of electronics battery. Volts*10 */
 /*
  * Measurement notes:
- *    9.2V: 134
- *    9.15V: 133
- *    9.1V: 132
- *    8.95V: 130
- *    8.90V: 129
- *    8.85V: 128
- *    8.77V: 127
- *    8.70V: 126
- *    8.60V: 124
- *    7.68V: 110
- *    7.05V: 099 (still stable; not heavily tested)
+ *  10.08V: 146
+ *   9.51V: 137
+ *   9.01V: 129
+ *   8.45V: 120
+ *   8.02V: 113
+ *   7.47V: 104
+ *   7.09V: 97
+ *   6.79V: 94
+ *   6.36V: 95
+ *   6.05V: - Arduino browns out :(
+ *   5.97V: 97
  *
- * Run-time test: 2.5 hours!
+ * System stable at 6.00V, 1A (idle)
+ * Note that ADC readings below 96 are inaccurate; probably due to regulator
+ * drop-out
+ *
+ * V = 0.0155*adc + 1
  */
 uint8_t main_battery() {
    // TODO: implement this properly
    uint16_t adc = adc_read(7);
-   return adc >> 2;
+   uint16_t volts = ((adc*10)/64) + 10; // Volts*10
+   if(adc < 384) volts=60; // clamp to 6V in non-linear range
+   return volts;
 }
 
-/* read charge of motor battery. roughly 0-100 */
+/* read voltage of motor battery. Volts*10 */
 /*
  * Measurement notes:
- *    9.4V: 149
- *    0.5V: 025
+ *  10.02V: 159
+ *   9.45V: 150
+ *   8.93V: 141
+ *   8.09V: 128
+ *   6.95V: 110
+ *   6.42V: 101
+ *   5.99V: 94
+ *
+ * V = 0.015546*adc + 0.134
+ * V = adc/64 + 0.134
  */
 uint8_t motor_battery(){
    // TODO: implement this properly
    // this is likely to share A LOT of code with main_battery()
    uint16_t adc = adc_read(15);
+   uint16_t volts = ((adc*10)/64) + 1;
 
-   return adc >> 2;
+   return volts;
 }
