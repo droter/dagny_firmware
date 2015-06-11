@@ -37,6 +37,10 @@ void pwr_off() {
 
 /* initialize ADCs for reading battries */
 void battery_init() {
+   // arduino mega pin 48: PL1
+   DDRL |= (1 << 1);
+   PORTL &= ~(1 << 1); // unset power-down pin
+
    adc_init();
 }
 
